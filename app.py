@@ -28,16 +28,14 @@ try:
         os.path.join(app.config.get('CONTENT_DIR'), 'config.py')
     )
 except IOError:
-    print ("Startup Failure: You need to place a "
-           "config.py in your content directory.")
+    print("Startup Failure: You need to place a "
+          "config.py in your content directory.")
 
 manager = Manager(app)
 
 loginmanager = LoginManager()
 loginmanager.init_app(app)
 loginmanager.login_view = 'user_login'
-
-
 
 """
     Wiki classes
@@ -48,6 +46,7 @@ loginmanager.login_view = 'user_login'
 class Processors(object):
     """This class is collection of processors for various content items.
     """
+
     def __init__(self, content=""):
         """Initialization function.  Runs Processors().pre() on content.
 
@@ -175,7 +174,7 @@ class Page(object):
         item = self._meta[name]
         if len(item) == 1:
             return item[0]
-        print item
+        print(item)
         return item
 
     def __setitem__(self, name, value):
@@ -250,7 +249,7 @@ class Wiki(object):
         path = self.path(url)
         if not self.exists(url):
             return False
-        print path
+        print(path)
         os.remove(path)
         return True
 
@@ -265,10 +264,9 @@ class Wiki(object):
                         url = name[:-3]
                     else:
                         url = os.path.join(path_prefix[0], name[:-3])
-                    if attr:
-                        pages[getattr(page, attr)] = page  # TODO: looks like bug, but doesn't appear to be used
-                    else:
+                    if not attr:
                         pages.append(Page(fullname, url.replace('\\', '/')))
+
         if attr:
             pages = {}
         else:
@@ -325,6 +323,7 @@ class Wiki(object):
 
 class UserManager(object):
     """A very simple user Manager, that saves it's data as json."""
+
     def __init__(self, path):
         self.file = os.path.join(path, 'users.json')
 
@@ -339,8 +338,9 @@ class UserManager(object):
         with open(self.file, 'w') as f:
             f.write(json.dumps(data, indent=2))
 
-    def add_user(self, name, password,
-                 active=True, roles=[], authentication_method=None):
+    def add_user(self, name, password, active=True, roles=None, authentication_method=None):
+        if not roles:
+            roles = []
         users = self.read()
         if users.get(name):
             return False
@@ -455,6 +455,7 @@ def protect(f):
         if app.config.get('PRIVATE') and not current_user.is_authenticated():
             return loginmanager.unauthorized()
         return f(*args, **kwargs)
+
     return wrapper
 
 
@@ -511,7 +512,6 @@ users = UserManager(app.config.get('CONTENT_DIR'))
 @loginmanager.user_loader
 def load_user(name):
     return users.get_user(name)
-
 
 
 """
@@ -676,4 +676,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    manager.run()
+    app.run(debug=True)  # manager.run()
