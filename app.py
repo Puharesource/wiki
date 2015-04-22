@@ -478,6 +478,7 @@ class URLForm(Form):
 
 class SearchForm(Form):
     term = StringField('', [InputRequired()])
+    ignore_case = BooleanField(description='Ignore Case', default=app.config.get('DEFAULT_SEARCH_IGNORE_CASE', True))
 
 
 class EditorForm(Form):
@@ -525,21 +526,21 @@ def home():
     page = wiki.get('home')
     if page:
         return display('home')
-    return render_template('home.html')
+    return render_template('home.html', search_form=SearchForm())
 
 
 @app.route('/index/')
 @protect
 def index():
     pages = wiki.index()
-    return render_template('index.html', pages=pages)
+    return render_template('index.html', search_form=SearchForm(), pages=pages)
 
 
 @app.route('/<path:url>/')
 @protect
 def display(url):
     page = wiki.get_or_404(url)
-    return render_template('page.html', page=page)
+    return render_template('page.html', search_form=SearchForm(), page=page)
 
 
 @app.route('/create/', methods=['GET', 'POST'])
@@ -548,7 +549,7 @@ def create():
     form = URLForm()
     if form.validate_on_submit():
         return redirect(url_for('edit', url=form.clean_url(form.url.data)))
-    return render_template('create.html', form=form)
+    return render_template('create.html', search_form=SearchForm(), form=form)
 
 
 @app.route('/edit/<path:url>/', methods=['GET', 'POST'])
@@ -563,7 +564,7 @@ def edit(url):
         page.save()
         flash('"%s" was saved.' % page.title, 'success')
         return redirect(url_for('display', url=url))
-    return render_template('editor.html', form=form, page=page)
+    return render_template('editor.html', search_form=SearchForm(), form=form, page=page)
 
 
 @app.route('/preview/', methods=['POST'])
@@ -585,7 +586,7 @@ def move(url):
         newurl = form.url.data
         wiki.move(url, newurl)
         return redirect(url_for('.display', url=newurl))
-    return render_template('move.html', form=form, page=page)
+    return render_template('move.html', search_form=SearchForm(), form=form, page=page)
 
 
 @app.route('/delete/<path:url>/')
@@ -601,25 +602,26 @@ def delete(url):
 @protect
 def tags():
     tags = wiki.get_tags()
-    return render_template('tags.html', tags=tags)
+    return render_template('tags.html', search_form=SearchForm(), tags=tags)
 
 
 @app.route('/tag/<string:name>/')
 @protect
 def tag(name):
     tagged = wiki.index_by_tag(name)
-    return render_template('tag.html', pages=tagged, tag=name)
+    return render_template('tag.html', search_form=SearchForm(), pages=tagged, tag=name)
 
 
 @app.route('/search/', methods=['GET', 'POST'])
 @protect
 def search():
-    form = SearchForm()
-    if form.validate_on_submit():
-        results = wiki.search(form.term.data, True)
-        return render_template('search.html', form=form,
-                               results=results, search=form.term.data)
-    return render_template('search.html', form=form, search=None)
+    search_form = SearchForm()
+
+    if search_form.validate_on_submit():
+        results = wiki.search(search_form.term.data, True)
+        return render_template('search.html', search_form=search_form,
+                               results=results, search=search_form.term.data)
+    return render_template('search.html', search_form=search_form, search=None)
 
 
 @app.route('/user/login/', methods=['GET', 'POST'])
@@ -675,4 +677,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    manager.run()
+    app.run(debug=True, host='0.0.0.0')  # manager.run()
