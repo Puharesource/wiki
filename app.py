@@ -633,7 +633,7 @@ def user_login():
         user.set('authenticated', True)
         flash('Login successful.', 'success')
         return redirect(request.args.get("next") or url_for('index'))
-    return render_template('login.html', form=form)
+    return render_template('login.html', search_form=SearchForm(), form=form)
 
 
 @app.route('/user/logout/')
@@ -673,7 +673,7 @@ def user_delete(user_id):
 
 @app.errorhandler(404)
 def page_not_found(e):
-    return render_template('404.html'), 404
+    return render_template('404.html', search_form=SearchForm()), 404
 
 
 if __name__ == '__main__':
