@@ -8,7 +8,7 @@ from functools import wraps
 from flask import (Flask, render_template, flash, redirect, url_for, request,
                    abort)
 from flask.ext.wtf import Form
-from wtforms import (BooleanField, TextField, TextAreaField, PasswordField)
+from wtforms import (BooleanField, TextAreaField, PasswordField, StringField)
 from wtforms.validators import (InputRequired, ValidationError)
 from flask.ext.login import (LoginManager, login_required, current_user,
                              login_user, logout_user)
@@ -466,7 +466,7 @@ def protect(f):
 
 
 class URLForm(Form):
-    url = TextField('', [InputRequired()])
+    url = StringField('', [InputRequired()])
 
     def validate_url(form, field):
         if wiki.exists(field.data):
@@ -477,18 +477,17 @@ class URLForm(Form):
 
 
 class SearchForm(Form):
-    term = TextField('', [InputRequired()])
-    ignore_case = BooleanField(description='Ignore Case', default=app.config.get('DEFAULT_SEARCH_IGNORE_CASE', True))
+    term = StringField('', [InputRequired()])
 
 
 class EditorForm(Form):
-    title = TextField('', [InputRequired()])
+    title = StringField('', [InputRequired()])
     body = TextAreaField('', [InputRequired()])
-    tags = TextField('')
+    tags = StringField('')
 
 
 class LoginForm(Form):
-    name = TextField('', [InputRequired()])
+    name = StringField('', [InputRequired()])
     password = PasswordField('', [InputRequired()])
 
     def validate_name(form, field):
@@ -617,7 +616,7 @@ def tag(name):
 def search():
     form = SearchForm()
     if form.validate_on_submit():
-        results = wiki.search(form.term.data, form.ignore_case.data)
+        results = wiki.search(form.term.data, True)
         return render_template('search.html', form=form,
                                results=results, search=form.term.data)
     return render_template('search.html', form=form, search=None)
@@ -676,4 +675,4 @@ def page_not_found(e):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)  # manager.run()
+    manager.run()
