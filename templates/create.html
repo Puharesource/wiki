@@ -2,14 +2,15 @@
 
 {% block title %}Create a new page{% endblock title %}
 {% block content %}
-<div class="alert alert-dismissible alert-success">
-  <button type="button" class="close" data-dismiss="alert">×</button>
-  Thank you for creating new content!
-</div>
+
 <form method="POST" class="form-inline">
 	{{ form.hidden_tag() }}
-	{{ input(form.url, placeholder="URL of the new page", class="form-control") }}
-	<input type="submit" class="btn btn-success" value="Create">
+	<div class="input-group">
+        {{ input(form.url, placeholder="URL of the new page", class="form-control") }}
+        <span class="input-group-btn">
+          <input type="submit" class="btn btn-success" value="Create">
+        </span>
+      </div>
 </form>
 
 {% endblock content %}
